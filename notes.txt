@@ -1,0 +1,738 @@
+RAG Systems — 1000-Word Notes
+1. Introduction to RAG
+
+RAG (Retrieval-Augmented Generation) is a technique used in Generative AI to improve the accuracy and reliability of Large Language Models (LLMs). Instead of depending only on the knowledge stored inside an LLM, a RAG system first retrieves relevant information from an external knowledge source and then provides that information to the LLM as context for generating the answer.
+
+The basic idea is:
+
+User Question → Retrieve Relevant Information → Give Context to LLM → Generate Answer
+
+For example, suppose a company has thousands of documents containing employee policies. If an employee asks:
+
+"How many days of casual leave can I take?"
+
+A normal LLM may not know the company's specific policy. A RAG system searches the company's policy documents, finds the relevant section, and sends it to the LLM. The LLM then generates an answer based on the retrieved information.
+
+Therefore, RAG is particularly useful for company documents, FAQs, manuals, research papers, product documentation, databases, and other private or frequently changing information.
+
+2. Why Do We Need RAG?
+
+LLMs such as GPT, Mistral, Llama, and others are trained on large datasets. However, they have several limitations.
+
+Main problems with LLMs:
+Knowledge cutoff
+The model may not know recent information.
+Private data limitation
+The model normally does not automatically know your company's internal documents.
+Hallucination
+An LLM can sometimes generate information that sounds correct but is actually false.
+Large document handling
+Providing thousands of documents directly in a prompt is expensive and inefficient.
+Updating knowledge
+Retraining an LLM every time a document changes is impractical.
+
+RAG addresses these problems by allowing the model to retrieve information at query time.
+
+3. Architecture of a RAG System
+
+A typical RAG system contains the following components:
+
+Documents → Document Loader → Text Splitter → Embedding Model → Vector Database → Retriever → LLM → Answer
+
+Let's understand each component.
+
+A. Documents
+
+The knowledge source can contain:
+
+PDF files
+Word documents
+Text files
+Websites
+Excel files
+Databases
+Company manuals
+Research papers
+Product documentation
+
+For example:
+
+company_policy.pdf
+employee_handbook.pdf
+leave_policy.pdf
+salary_policy.pdf
+4. Document Loading
+
+The first step is to load documents into the RAG system.
+
+Frameworks such as LangChain provide document loaders for different formats.
+
+For example, a PDF loader can extract text from a PDF.
+
+The result is usually represented as a document containing:
+
+Page content
+Metadata
+
+Metadata may contain information such as:
+
+source = employee_handbook.pdf
+page = 12
+
+Metadata becomes useful later for identifying where the retrieved information came from.
+
+5. Text Chunking
+
+Large documents cannot always be processed efficiently as one large piece of text. Therefore, documents are divided into smaller pieces called chunks.
+
+For example:
+
+Original document
+       ↓
+Chunk 1
+Chunk 2
+Chunk 3
+Chunk 4
+...
+
+A chunk might contain approximately 500–1000 characters or tokens depending on the application.
+
+Why chunking is important
+
+Suppose a PDF contains 100 pages. A user asks about the leave policy. We don't want to send all 100 pages to the LLM.
+
+Instead, the RAG system should retrieve only the chunks related to leave policy.
+
+Chunk overlap
+
+Sometimes chunks overlap.
+
+For example:
+
+Chunk 1: A B C D E
+Chunk 2: D E F G H
+
+Here, D and E are repeated.
+
+Overlap helps preserve context when an important sentence is split between two chunks.
+
+6. Embeddings
+
+After chunking, each chunk is converted into a numerical representation called an embedding.
+
+An embedding is a vector containing numbers that represents the semantic meaning of text.
+
+For example:
+
+"How many vacation days do employees receive?"
+
+and
+
+"Employees are entitled to 20 days of annual leave."
+
+have different words but similar meanings.
+
+An embedding model can represent both texts as vectors that are mathematically close to each other.
+
+This allows the system to perform semantic search.
+
+7. Vector Database
+
+The generated embeddings are stored in a vector database.
+
+Popular vector databases include:
+
+FAISS
+Chroma
+Pinecone
+Weaviate
+Milvus
+Qdrant
+
+A vector database stores:
+
+Text Chunk
+    +
+Embedding
+    +
+Metadata
+
+For example:
+
+Chunk:
+"Employees receive 20 annual leave days."
+
+Embedding:
+[0.21, -0.45, 0.73, ...]
+
+Metadata:
+source = leave_policy.pdf
+page = 4
+8. Retrieval
+
+When the user asks a question, the question is also converted into an embedding.
+
+The system compares the question embedding with the stored document embeddings.
+
+For example:
+
+User:
+"How many annual leave days are available?"
+
+        ↓
+
+Question Embedding
+
+        ↓
+
+Vector Database Search
+
+        ↓
+
+Top relevant chunks
+
+The system may retrieve the top 3, top 5, or top 10 most relevant chunks.
+
+This process is called retrieval.
+
+9. Similarity Search
+
+RAG systems commonly use similarity measures to find relevant information.
+
+One common method is cosine similarity.
+
+The basic idea is:
+
+If two vectors have similar directions, their meanings are likely to be similar.
+
+For example:
+
+Question
+"How much leave can I take?"
+
+        ↓
+
+Similar chunks
+
+"Employees can take 20 days
+of annual leave each year."
+
+The most relevant chunks are then passed to the LLM.
+
+10. Generation
+
+After retrieving relevant information, the system creates a prompt containing:
+
+User question
+Retrieved context
+Instructions for the LLM
+
+For example:
+
+Context:
+Employees receive 20 days of annual leave.
+
+Question:
+How many annual leave days do employees receive?
+
+Answer:
+Employees receive 20 days of annual leave each year.
+
+The LLM generates the final response using the retrieved context.
+
+This is the Generation part of Retrieval-Augmented Generation.
+
+11. Complete RAG Workflow
+
+The complete process can be represented as:
+
+              DOCUMENTS
+                  ↓
+          Document Loading
+                  ↓
+             Chunking
+                  ↓
+             Embeddings
+                  ↓
+          Vector Database
+                  ↓
+              Retrieval
+                  ↑
+                  |
+User Question → Embedding
+                  ↓
+        Relevant Documents
+                  ↓
+             Prompt + Context
+                  ↓
+                 LLM
+                  ↓
+             Final Answer
+12. RAG vs Fine-Tuning
+
+RAG and fine-tuning are different approaches.
+
+RAG
+
+RAG gives external information to the model during inference.
+
+Advantages:
+
+Easy to update knowledge
+Good for private documents
+No model retraining required
+Can provide document references
+Useful for frequently changing information
+Fine-tuning
+
+Fine-tuning changes the model's parameters by training it on additional examples.
+
+It is useful for:
+
+Changing model behavior
+Learning a particular writing style
+Specialized task performance
+Classification and structured outputs
+
+A useful rule is:
+
+Use RAG to provide knowledge.
+Use fine-tuning to modify behavior or style.
+
+Sometimes both approaches can be combined.
+
+13. Types of RAG
+1. Basic RAG
+
+The system performs:
+
+Query → Vector Search → LLM
+
+This is the simplest implementation.
+
+2. Advanced RAG
+
+Advanced systems may include:
+
+Query rewriting
+Metadata filtering
+Hybrid search
+Reranking
+Multiple retrieval strategies
+Citation generation
+Query expansion
+3. Hybrid RAG
+
+Hybrid retrieval combines:
+
+Keyword search + Semantic search
+
+Keyword search is useful for exact terms, while semantic search is useful for meaning.
+
+14. RAG with LangChain
+
+LangChain is commonly used for building RAG applications.
+
+A typical LangChain RAG pipeline involves:
+
+Document Loader
+      ↓
+Text Splitter
+      ↓
+Embedding Model
+      ↓
+Vector Store
+      ↓
+Retriever
+      ↓
+Prompt
+      ↓
+Chat Model
+      ↓
+Answer
+
+For example, Python applications can use components such as:
+
+Document Loader
+Text Splitter
+Embeddings
+Vector Store
+Retriever
+Chat Model
+
+LangChain helps connect these components into an application.
+
+15. Advantages of RAG
+
+RAG provides several important benefits.
+
+Accuracy
+
+The LLM can answer using retrieved information instead of relying entirely on its internal knowledge.
+
+Up-to-date information
+
+Documents can be updated without retraining the LLM.
+
+Private knowledge
+
+Organizations can build systems around internal documents.
+
+Reduced hallucination
+
+Grounding answers in retrieved documents can reduce unsupported responses.
+
+Source attribution
+
+A RAG system can provide the document name, page number, or other citation information.
+
+Cost efficiency
+
+Updating a vector database is often much cheaper than retraining a large model.
+
+16. Challenges of RAG
+
+RAG is powerful, but it is not automatically accurate.
+
+Poor chunking
+
+If chunks are too small, important context may be lost.
+
+If chunks are too large, retrieval may become less precise.
+
+Poor retrieval
+
+If the correct document is not retrieved, the LLM may still produce an incorrect answer.
+
+Embedding quality
+
+Poor embeddings can result in irrelevant search results.
+
+Hallucination
+
+Even with retrieved context, an LLM can sometimes generate unsupported information.
+
+Large context
+
+Sending too many retrieved chunks can increase token usage and reduce answer quality.
+
+17. Improving RAG Performance
+
+Some techniques used to improve RAG include:
+
+Better chunking strategies
+Better embedding models
+Metadata filtering
+Hybrid search
+Reranking
+Query rewriting
+Top-K optimization
+Context compression
+Citation verification
+Evaluation datasets
+
+A particularly useful technique is reranking.
+
+The system first retrieves several candidate documents and then uses a reranker to determine which documents are most relevant.
+
+18. Real-World Applications
+
+RAG is used in many applications.
+
+Customer Support
+
+A chatbot can retrieve product manuals and FAQs before answering customers.
+
+Healthcare
+
+A system can retrieve information from medical documents and research databases. Such systems should still be designed with appropriate safeguards and professional oversight.
+
+Education
+
+Students can ask questions about textbooks and receive answers based on their course material.
+
+Legal
+
+Lawyers can search large collections of legal documents and retrieve relevant sections.
+
+Business
+
+Employees can ask questions about:
+
+HR policies
+Company procedures
+Financial reports
+Product documentation
+Coding Assistants
+
+A coding assistant can retrieve relevant documentation and source code before generating an answer.
+
+19. RAG Evaluation
+
+A RAG system should be evaluated at multiple levels.
+
+Retrieval evaluation
+
+Did the system retrieve the correct documents?
+
+Generation evaluation
+
+Did the LLM produce a correct answer based on the retrieved context?
+
+Important metrics include:
+
+Precision
+Recall
+Context relevance
+Faithfulness
+Answer correctness
+
+A good RAG system needs both good retrieval and good generation.
+
+20. Conclusion
+
+RAG, or Retrieval-Augmented Generation, is one of the most important architectures in modern Generative AI. It combines the language-generation capabilities of an LLM with an external knowledge source.
+
+The core process is:
+
+Load → Chunk → Embed → Store → Retrieve → Generate
+
+The major advantage of RAG is that an LLM does not need to know everything internally. Instead, it can retrieve the information it needs at the time of answering.
+
+For someone learning Generative AI, understanding RAG is extremely important because it forms the foundation of many practical AI applications such as document chatbots, PDF question-answering systems, company knowledge assistants, customer-support bots, and AI search systems.
+
+give me 1000 word ai notes
+Artificial Intelligence (AI) — 1000-Word Notes
+1. Introduction to Artificial Intelligence
+
+Artificial Intelligence (AI) is a branch of computer science that focuses on creating machines and software capable of performing tasks that normally require human intelligence.
+
+Human intelligence includes abilities such as:
+
+Learning
+Reasoning
+Problem-solving
+Understanding language
+Recognizing images
+Making decisions
+Planning
+Understanding patterns
+
+AI systems attempt to perform some or all of these activities using algorithms, data, and computational power.
+
+For example, when a smartphone recognizes your face, a recommendation system suggests a movie, or a chatbot answers a question, AI may be involved.
+
+A simple definition is:
+
+AI is the technology that enables machines to learn, reason, understand, and make decisions.
+
+2. How Artificial Intelligence Works
+
+A typical AI system works using three major components:
+
+Data + Algorithms + Computing Power
+
+Data
+
+Data is the information used by an AI system.
+
+Examples include:
+
+Images
+Text
+Audio
+Videos
+Customer records
+Financial transactions
+Sensor data
+
+The quality and quantity of data can significantly affect the performance of an AI system.
+
+Algorithms
+
+An algorithm is a set of instructions used to solve a problem.
+
+Machine learning algorithms can learn patterns from data instead of requiring programmers to manually define every rule.
+
+Computing Power
+
+Modern AI requires significant computational resources, especially for large models.
+
+GPUs and specialized AI hardware allow large numbers of mathematical calculations to be performed efficiently.
+
+3. Major Areas of AI
+
+Artificial Intelligence is a broad field containing several important areas.
+
+1. Machine Learning
+
+Machine Learning (ML) allows computers to learn patterns from data and make predictions or decisions.
+
+Examples:
+
+Predicting house prices
+Detecting fraud
+Predicting customer churn
+Classifying emails as spam
+2. Deep Learning
+
+Deep Learning is a subset of machine learning based primarily on artificial neural networks with multiple layers.
+
+It is widely used for:
+
+Image recognition
+Speech recognition
+Natural language processing
+Generative AI
+Autonomous systems
+3. Natural Language Processing
+
+NLP enables computers to work with human language.
+
+Applications include:
+
+Chatbots
+Translation
+Sentiment analysis
+Text summarization
+Question answering
+Speech-to-text
+4. Computer Vision
+
+Computer Vision enables machines to understand images and videos.
+
+Applications include:
+
+Face recognition
+Object detection
+Medical image analysis
+Self-driving technology
+Quality inspection
+5. Robotics
+
+Robotics combines AI with mechanical and electronic systems to create machines capable of sensing their environment and performing actions.
+
+4. Artificial Intelligence vs Machine Learning vs Deep Learning
+
+These terms are related but not identical.
+
+Artificial Intelligence
+        ↓
+Machine Learning
+        ↓
+Deep Learning
+
+AI is the broad field.
+
+Machine Learning is a subset of AI where systems learn from data.
+
+Deep Learning is a subset of machine learning that uses multi-layer neural networks.
+
+For example, a system that predicts whether a customer will leave a company could use machine learning, while a system that understands complex images could use deep learning.
+
+5. Types of Artificial Intelligence
+
+AI can be categorized based on capabilities.
+
+Narrow AI
+
+Narrow AI, also called Weak AI, is designed to perform specific tasks.
+
+Examples:
+
+Voice assistants
+Recommendation systems
+Spam detection
+Image classification
+Chatbots
+
+Most AI systems available today are narrow AI.
+
+General AI
+
+Artificial General Intelligence (AGI) refers to a hypothetical AI system capable of performing a wide range of intellectual tasks at a level comparable to humans.
+
+AGI remains a research goal rather than a generally established technology.
+
+Superintelligence
+
+Artificial Superintelligence refers to a hypothetical system whose intellectual capabilities would substantially exceed those of humans across many domains.
+
+It is primarily discussed as a future possibility and in AI safety research.
+
+6. Machine Learning
+
+Machine learning is one of the most important components of modern AI.
+
+There are three major types.
+
+Supervised Learning
+
+In supervised learning, the model learns from labeled data.
+
+For example:
+
+Input: Hours studied
+Output: Exam marks
+
+The model learns the relationship between input and output.
+
+Common supervised learning algorithms include:
+
+Linear Regression
+Logistic Regression
+Decision Trees
+Random Forest
+Support Vector Machines
+K-Nearest Neighbors
+Gradient Boosting
+
+Applications include prediction and classification.
+
+Unsupervised Learning
+
+In unsupervised learning, the data does not contain predefined labels.
+
+The algorithm attempts to discover patterns or structures.
+
+Examples include:
+
+Customer segmentation
+Clustering
+Anomaly detection
+Dimensionality reduction
+
+A popular algorithm is K-Means Clustering.
+
+Reinforcement Learning
+
+In reinforcement learning, an agent learns by interacting with an environment.
+
+The agent receives:
+
+Rewards for good actions
+Penalties for undesirable actions
+
+The objective is to learn a strategy that maximizes the total reward.
+
+Reinforcement learning has applications in robotics, games, optimization, and decision-making.
+
+7. Neural Networks
+
+Neural networks are computational models inspired loosely by the structure of biological neural systems.
+
+A basic neural network contains:
+
+Input Layer
+     ↓
+Hidden Layer
+     ↓
+Output Layer
+
+Each neuron performs mathematical operations on its inputs.
+
+Neural networks learn by adjusting parameters called weights.
+
+During training, the model compares its prediction with the expected result and updates its weights to reduce the error.
+
+This process is called backpropagation, usually combined with an optimization algorithm such as gradient descent.

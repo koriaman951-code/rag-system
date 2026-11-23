@@ -1,0 +1,12 @@
+# Environment variables & API keys
+.env
+
+# Virtual environment folder
+.venv/
+
+# Local vector database folder
+Chroma_db/
+
+# Python cache folders
+__pycache__/
+*.pyc

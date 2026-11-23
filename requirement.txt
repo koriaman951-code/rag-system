@@ -1,0 +1,32 @@
+# Core LangChain
+langchain
+langchain-core
+langchain-community
+
+# Model providers
+langchain-mistralai
+langchain-google-genai
+langchain-huggingface
+
+# Embeddings (if not using a provider's embedding endpoint)
+sentence-transformers
+
+# Vector store (pick one — FAISS is common for local/simple RAG)
+faiss-cpu
+# chromadb          # alternative to FAISS
+# pinecone-client   # if using a hosted vector DB
+
+# Document loading & splitting
+pypdf              # for PDF ingestion
+unstructured       # for parsing varied doc types (docx, html, etc.)
+tiktoken           # token counting for chunking
+
+# Environment variables
+python-dotenv
+
+# HuggingFace ecosystem
+huggingface_hub
+transformers
+
+# Optional: UI
+streamlit
